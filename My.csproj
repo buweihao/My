@@ -8,4 +8,11 @@
     <UseWPF>true</UseWPF>
   </PropertyGroup>
 
+  <ItemGroup>
+    <Compile Remove="MyConfig\**" />
+    <EmbeddedResource Remove="MyConfig\**" />
+    <None Remove="MyConfig\**" />
+    <Page Remove="MyConfig\**" />
+  </ItemGroup>
+
 </Project>

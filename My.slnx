@@ -1,3 +1,4 @@
 <Solution>
   <Project Path="My.csproj" />
+  <Project Path="MyConfig/MyConfig.csproj" Id="2c9c0bde-fd33-44e8-bbe8-23d1799051be" />
 </Solution>
