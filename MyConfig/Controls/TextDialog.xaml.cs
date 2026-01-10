@@ -1,5 +1,4 @@
-﻿using Core;
-using HandyControl;
+﻿using HandyControl;
 using HandyControl.Controls;
 using MyConfig;
 using System.Collections.ObjectModel;
@@ -55,38 +54,6 @@ public partial class TextDialog
     }
 }
 
-public static class MyConfigCommand
-{
-    public static ConfigHelper? configHelper;
-    private static HandyControl.Controls.Dialog dialog;
-    public static void ShowText(string element)
-    {
-        if (configHelper == null)
-            throw new ArgumentNullException(nameof(configHelper) + "还没有将configHelper传入");
-        dialog = HandyControl.Controls.Dialog.Show(new TextDialog(element, configHelper) { ConfirmCommand = ConfirmCommand });
-    }
-    public static event Action? Confirmed;
-
-    public static ICommand ConfirmCommand => new RelayCommand<object>(OnConfirm);
-
-    private static void OnConfirm(object param)
-    {
-        if (param is ObservableCollection<IpNode> nodes)
-        {
-            foreach (var node in nodes)
-            {
-                configHelper._configJson[node.Key] = node.Value;
-            }
-            configHelper.SaveConfig();
-            dialog.Close();
-
-            // 👇 触发事件
-            Confirmed?.Invoke();
-        }
-    }
-
-
-}
 
 public class IpNode : INotifyPropertyChanged
 {

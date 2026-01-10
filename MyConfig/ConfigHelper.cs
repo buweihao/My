@@ -16,9 +16,9 @@ using System.Xml;
 
 namespace MyConfig
 {
-    public class ConfigHelper
+    public class ConfigHelper : IConfigService
     {
-
+        public object RawJsonConfig => _configJson;
         private string _configPath;
         public Dictionary<string, object> Settings { get; private set; } = new Dictionary<string, object>();
         public JObject _configJson;
