@@ -22,22 +22,6 @@ namespace MyConfig.Controls
             set { SetValue(WindowManagerProperty, value); }
         }
 
-        // ==========================================
-        // 2. 定义 ConfigCategory 依赖属性 (缺失的部分)
-        //    这是传给 ShowConfigDialog 的参数，比如 "My" 或 "Database"
-        // ==========================================
-        public static readonly DependencyProperty ConfigCategoryProperty =
-            DependencyProperty.Register(
-                nameof(ConfigCategory),
-                typeof(string),
-                typeof(ConfigButton),
-                new PropertyMetadata("My")); // 默认值为 "My"
-
-        public string ConfigCategory
-        {
-            get { return (string)GetValue(ConfigCategoryProperty); }
-            set { SetValue(ConfigCategoryProperty, value); }
-        }
 
         // ==========================================
         // 3. 构造函数与逻辑
@@ -47,18 +31,19 @@ namespace MyConfig.Controls
             InitializeComponent();
         }
 
-        // 按钮点击事件处理
-        // (请确保 XAML 中的 Button 绑定了这个事件: Click="OnButtonClick")
         private void OnButtonClick(object sender, RoutedEventArgs e)
         {
-            if (WindowManager != null)
+            // 如果没有注入，尝试使用上下文默认值
+            var manager = WindowManager ?? MyConfigContext.DefaultManager;
+
+            if (manager != null)
             {
-                // 现在 ConfigCategory 可以正常访问了
-                WindowManager.ShowConfigDialog(ConfigCategory);
+                // [修改] 改为打开管理面板
+                manager.ShowManagementPanel();
             }
             else
             {
-                MessageBox.Show("错误：WindowManager 未注入。\n请在 MainWindow 中设置：MyConfigBtn.WindowManager = ...", "配置错误");
+                MessageBox.Show("配置服务未初始化。");
             }
         }
     }

@@ -1,0 +1,41 @@
+﻿<UserControl x:Class="MyConfig.Controls.ConfigDashboard"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:hc="https://handyorg.github.io/handycontrol"
+             Width="300" MinHeight="200" Background="{DynamicResource RegionBrush}">
+    <UserControl.Resources>
+        <ResourceDictionary>
+            <ResourceDictionary.MergedDictionaries>
+                <ResourceDictionary Source="pack://application:,,,/HandyControl;component/Themes/Theme.xaml" />
+                <ResourceDictionary Source="pack://application:,,,/HandyControl;component/Themes/SkinDefault.xaml" />
+            </ResourceDictionary.MergedDictionaries>
+        </ResourceDictionary>
+    </UserControl.Resources>
+    <Border CornerRadius="10" Background="{DynamicResource RegionBrush}" Padding="20">
+        <StackPanel>
+            <TextBlock Text="配置管理面板" 
+                       FontSize="20" FontWeight="Bold" 
+                       HorizontalAlignment="Center" Margin="0,0,0,20"
+                       Foreground="{DynamicResource PrimaryTextBrush}"/>
+
+            <ItemsControl ItemsSource="{Binding Categories}">
+                <ItemsControl.ItemTemplate>
+                    <DataTemplate>
+                        <Button Content="{Binding Name}"
+                                Command="{Binding DataContext.OpenItemCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                                CommandParameter="{Binding Filter}"
+                                Style="{StaticResource ButtonPrimary}"
+                                HorizontalAlignment="Stretch"
+                                Margin="0,0,0,10" Height="40"/>
+                    </DataTemplate>
+                </ItemsControl.ItemTemplate>
+            </ItemsControl>
+
+            <Button Content="关闭" 
+                    Command="hc:ControlCommands.Close" 
+                    Margin="0,10,0,0" 
+                    HorizontalAlignment="Stretch"
+                    Height="40"/>
+        </StackPanel>
+    </Border>
+</UserControl>

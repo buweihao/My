@@ -15,4 +15,12 @@
     <Page Remove="MyConfig\**" />
   </ItemGroup>
 
+  <ItemGroup>
+    <PackageReference Include="HandyControl" Version="3.5.1" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="MyConfig\MyConfig.csproj" />
+  </ItemGroup>
+
 </Project>
