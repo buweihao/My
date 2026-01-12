@@ -44,21 +44,46 @@ public partial class TextDialog : UserControl
     private ICommand _confirmCommand;
     public ICommand ConfirmCommand => _confirmCommand ??= new RelayCommand<ObservableCollection<IpNode>>(OnConfirm);
 
+    //private void OnConfirm(ObservableCollection<IpNode>? nodes)
+    //{
+    //    if (nodes == null) return;
+
+    //    // 1. 保存配置逻辑 (保持不变)
+    //    foreach (var node in nodes)
+    //    {
+    //        _configService.SetConfig(node.Key, node.Value);
+    //    }
+    //    _configService.SaveConfig();
+
+    //    // 2. [修改这里] 使用 WPF 标准方式关闭父窗口
+    //    // 原代码: HandyControl.Interactivity.ControlCommands.Close.Execute(null, this);
+
+    //    // 新代码: 显式获取父窗口并关闭
+    //    var parentWindow = System.Windows.Window.GetWindow(this);
+    //    parentWindow?.Close();
+
+    //    // 补充说明: 
+    //    // 如果您的意图不是关闭整个窗口，而是"返回"到上一个面板(Dashboard)，
+    //    // 可以使用: this.NavigationService?.GoBack();
+    //}
+    // [新增] 通用的关闭/取消事件
+    private void OnClose_Click(object sender, System.Windows.RoutedEventArgs e)
+    {
+        System.Windows.Window.GetWindow(this)?.Close();
+    }
+
+    // [确认] 之前的确认逻辑也应确保是这样关闭的
     private void OnConfirm(ObservableCollection<IpNode>? nodes)
     {
         if (nodes == null) return;
-
-        // 遍历界面上的数据，写回 Service
         foreach (var node in nodes)
         {
             _configService.SetConfig(node.Key, node.Value);
         }
-
-        // 持久化保存
         _configService.SaveConfig();
 
-        // 关闭弹窗
-        HandyControl.Interactivity.ControlCommands.Close.Execute(null, this);
+        // 确保这里也是用的 GetWindow(this)?.Close()
+        System.Windows.Window.GetWindow(this)?.Close();
     }
 }
 

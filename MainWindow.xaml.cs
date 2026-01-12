@@ -1,4 +1,5 @@
-﻿using System.Text;
+﻿using MyConfig;
+using System.Text;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Data;
@@ -16,14 +17,33 @@ namespace My
     /// </summary>
     public partial class MainWindow : Window
     {
+        private HotKeyManager _hotKeyManager;
         public MainWindow()
         {
             InitializeComponent();
-            // 1. 获取管理器实例
-            var manager = MyConfig.MyConfigContext.DefaultManager;
+            _hotKeyManager = new HotKeyManager(this);
+            MyConfigInit();
+            MyHotKeyInit();
+        }
 
+        private void MyHotKeyInit()
+        {
+            _hotKeyManager.Register(Key.F12, () =>
+            {
+                MyConfigContext.ShowPanel();
+            });
+        }
+
+        private void MyConfigInit()
+        {
+            MyConfigContext.Initialize("custom_config.json"); // 替换为您想要的文件路径
+
+            Console.WriteLine(MyConfigContext.Service.GetValue("Modules"));
+
+            // 1. 获取管理器实例
+            var manager = MyConfigContext.DefaultManager;
             // 注册分类 1：加载 My 开头的所有项
-            manager.RegisterCategory("系统参数", key => key.StartsWith("1_")||key.StartsWith("_1"));
+            manager.RegisterCategory("系统参数", key => key.StartsWith("1_") || key.StartsWith("_1"));
 
             // 注册分类 2：加载 Database 开头 或者 Connection 结尾的项 (复杂的业务逻辑)
             manager.RegisterCategory("数据库配置", key =>
@@ -33,5 +53,6 @@ namespace My
             manager.RegisterCategory("关键开关", key =>
                 key == "EnableLog" || key == "IsDebugMode");
         }
+
     }
 }

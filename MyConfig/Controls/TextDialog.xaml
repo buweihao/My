@@ -53,7 +53,7 @@
                                 Foreground="White"
                                 BorderBrush="{x:Null}"
                                 HorizontalAlignment="Right"
-                                Command="hc:ControlCommands.Close"
+                                Click="OnClose_Click"
                                 ToolTip="关闭">
                             <Path Data="M 3,3 L 13,13 M 13,3 L 3,13"
                                   StrokeThickness="2"
@@ -169,7 +169,7 @@
                                     Width="88"
                                     Height="36"
                                     FontSize="14"
-                                    Command="hc:ControlCommands.Close" />
+                                    Click="OnClose_Click" />
                         </StackPanel>
                     </DockPanel>
                 </Border>
