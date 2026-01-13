@@ -18,20 +18,32 @@ namespace My
 
         public App()
         {
-            // ✅ 一行代码搞定初始化
-            Host = ModbusApp.CreateHost("Configs/config.csv", services =>
+            Host = AppBootstrapper.CreateHost(services =>
             {
+                // ========================================================
+                // 1. 【自主选择】在这里显式注册 MyModbus
+                // 如果你不需要 Modbus，直接把这两行注释掉即可！
+                // ========================================================
+                string modbusConfigPath = "Configs/config.csv";
+                services.AddMyModbusCore(modbusConfigPath); // 假设这是你的扩展方法
+
+                // ========================================================
+                // 2. 注册配置服务 (你的自定义 ConfigService)
+                // ========================================================
                 string jsonConfigPath = "Configs/custom_config.json";
                 services.AddSingleton<IConfigService>(provider =>
                 {
-                    // 确保这里的 ConfigService 是你定义的那个类名
-                    // 如果你原来的类叫 ConfigHelper，这里就 new ConfigHelper
                     return new ConfigService(jsonConfigPath);
                 });
 
-
+                // ========================================================
+                // 3. 注册业务服务
+                // ========================================================
                 services.AddSingleton<IModbusService, ModbusService>();
-                // 注册你自己的主窗口和 ViewModel
+
+                // ========================================================
+                // 4. 注册 UI
+                // ========================================================
                 services.AddSingleton<MainViewModel>();
                 services.AddSingleton<MainWindow>();
             });
@@ -58,5 +70,23 @@ namespace My
 
     }
 
-
+    public static class AppBootstrapper
+    {
+        /// <summary>
+        /// 通用的 Host 创建器
+        /// 不再强制依赖 config.csv，也不强制加载 MyModbusCore
+        /// </summary>
+        /// <param name="configureServices">回调函数，由上层决定注册哪些服务</param>
+        public static IHost CreateHost(Action<IServiceCollection> configureServices)
+        {
+            return Host.CreateDefaultBuilder()
+                .ConfigureServices((context, services) =>
+                {
+                    // 这里不再写死 services.AddMyModbusCore(...)
+                    // 而是完全执行传入的委托，让调用者自己决定
+                    configureServices?.Invoke(services);
+                })
+                .Build();
+        }
+    }
 }

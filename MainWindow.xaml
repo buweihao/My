@@ -5,6 +5,7 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:My"
         xmlns:modbus="clr-namespace:MyModbus;assembly=MyModbus"
+        xmlns:console="clr-namespace:MyConsole;assembly=MyConsole"
         mc:Ignorable="d"
         xmlns:config="clr-namespace:MyConfig.Controls;assembly=MyConfig"
         Title="MainWindow" Height="450" Width="800">
@@ -13,5 +14,8 @@
             <modbus:DashboardEntry HorizontalAlignment="Right"/>
         </Border>
         <config:ConfigButton  />
+        <console:ConsoleButton HorizontalAlignment="Right" 
+                         VerticalAlignment="Top" 
+                         Margin="10"/>
     </StackPanel>
 </Window>

@@ -10,15 +10,19 @@
 
   <ItemGroup>
     <Compile Remove="MyConfig\**" />
+    <Compile Remove="MyConsole\**" />
     <Compile Remove="MyModbus.Tests\**" />
     <Compile Remove="MyModbus\**" />
     <EmbeddedResource Remove="MyConfig\**" />
+    <EmbeddedResource Remove="MyConsole\**" />
     <EmbeddedResource Remove="MyModbus.Tests\**" />
     <EmbeddedResource Remove="MyModbus\**" />
     <None Remove="MyConfig\**" />
+    <None Remove="MyConsole\**" />
     <None Remove="MyModbus.Tests\**" />
     <None Remove="MyModbus\**" />
     <Page Remove="MyConfig\**" />
+    <Page Remove="MyConsole\**" />
     <Page Remove="MyModbus.Tests\**" />
     <Page Remove="MyModbus\**" />
   </ItemGroup>
@@ -34,6 +38,9 @@
   <ItemGroup>
     <Reference Include="MyConfig">
       <HintPath>MyConfig\bin\Debug\net8.0-windows7.0\MyConfig.dll</HintPath>
+    </Reference>
+    <Reference Include="MyConsole">
+      <HintPath>MyConsole\bin\Debug\net8.0-windows\MyConsole.dll</HintPath>
     </Reference>
     <Reference Include="MyModbus">
       <HintPath>MyModbus\bin\Debug\net8.0-windows\MyModbus.dll</HintPath>
