@@ -21,8 +21,16 @@ namespace My
             // ✅ 一行代码搞定初始化
             Host = ModbusApp.CreateHost("Configs/config.csv", services =>
             {
-                services.AddSingleton<IModbusService, ModbusService>();
+                string jsonConfigPath = "Configs/custom_config.json";
+                services.AddSingleton<IConfigService>(provider =>
+                {
+                    // 确保这里的 ConfigService 是你定义的那个类名
+                    // 如果你原来的类叫 ConfigHelper，这里就 new ConfigHelper
+                    return new ConfigService(jsonConfigPath);
+                });
 
+
+                services.AddSingleton<IModbusService, ModbusService>();
                 // 注册你自己的主窗口和 ViewModel
                 services.AddSingleton<MainViewModel>();
                 services.AddSingleton<MainWindow>();

@@ -566,13 +566,17 @@ namespace MyModbus
         private CancellationTokenSource _cts;
         private readonly List<Task> _tasks = new();
 
+        //工厂
+        private readonly IDriverFactory _driverFactory; // <--- 新增依赖
+
         /// <summary>
         /// 构造函数
         /// </summary>
-        public DataCollectionEngine(List<Device> devices, DataBus bus)
+        public DataCollectionEngine(List<Device> devices, DataBus bus, IDriverFactory driverFactory)
         {
             _devices = devices;
             _dataBus = bus;
+            _driverFactory = driverFactory; // <--- 保存工厂
             Init();
         }
 
@@ -583,20 +587,7 @@ namespace MyModbus
         {
             foreach (var device in _devices)
             {
-                // A. 工厂模式创建底层服务 (这里连接了 Model 和 Driver)
-                // 使用你提供的 ModbusTcpService
-                var tcpService = new ModbusTcpService(
-                    device.DeviceId,
-                    device.IpAddress,
-                    device.Port,
-                    // 将 Model 中的字节序配置传递给底层库
-                    // 注意：需根据 HSL 的 DataFormat 枚举进行映射，这里假设一一对应或手动转换
-                    dataFormat: (HslCommunication.Core.DataFormat)(int)device.ByteOrder,
-                    isStringReverseByteWord: device.IsStringReverse
-                );
-
-                // B. 包装成统一驱动接口
-                var driver = new HslModbusDriver(tcpService);
+                var driver = _driverFactory.CreateDriver(device);
                 _drivers[device.DeviceId] = driver;
 
                 // C. 建立写入查找表 (Tag Name -> Driver)
@@ -760,6 +751,7 @@ namespace MyModbus
             return false; // Tag 不存在
         }
     }
+
     #endregion
 
 

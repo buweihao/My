@@ -27,7 +27,7 @@ namespace My
 
 
         // ✅ 构造函数不再包含 DataBus 和 Engine
-        public MainViewModel(PlcLink plc, IModbusService machine, Func<DashboardWindow> dashboardFactory)
+        public MainViewModel(PlcLink plc, IModbusService machine, Func<DashboardWindow> dashboardFactory, IConfigService configService)
         {
             #region MyModbus
 

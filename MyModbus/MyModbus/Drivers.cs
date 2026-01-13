@@ -147,5 +147,30 @@ namespace MyModbus
             // 除非你是独占模式
         }
     }
+
+    public interface IDriverFactory
+    {
+        IDriver CreateDriver(Device device);
+    }
+
+    public class HslDriverFactory : IDriverFactory
+    {
+        public IDriver CreateDriver(Device device)
+        {
+            var tcpService = new ModbusTcpService(
+                device.DeviceId,
+                device.IpAddress,
+                device.Port,
+                // 将 Model 中的字节序配置传递给底层库
+                // 注意：需根据 HSL 的 DataFormat 枚举进行映射，这里假设一一对应或手动转换
+                dataFormat: (HslCommunication.Core.DataFormat)(int)device.ByteOrder,
+                isStringReverseByteWord: device.IsStringReverse
+            );
+
+            // B. 包装成统一驱动接口
+            return new HslModbusDriver(tcpService);
+        }
+    }
+
     #endregion
 }

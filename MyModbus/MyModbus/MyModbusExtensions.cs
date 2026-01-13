@@ -21,8 +21,8 @@ namespace MyModbus
             });
 
             // 3. 注册采集引擎 (Engine)
-            // ✅ 改为简单注册：容器会自动注入 List<Device> 和 DataBus
-            // ✅ 初始化逻辑由 Engine 构造函数内部的 Init() 负责
+            //当有人要 IDriverFactory 时，给他 HslDriverFactory
+            services.AddSingleton<IDriverFactory, HslDriverFactory>();
             services.AddSingleton<DataCollectionEngine>();
 
             // 4. 注册生命周期管理器 (自动 Start/Stop)

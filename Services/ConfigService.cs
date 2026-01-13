@@ -13,23 +13,27 @@ namespace My.Services
 
     public class ConfigService : IConfigService
     {
-        public ConfigService()
+        public ConfigService(string configPath)
         {
-            MyConfigInit();
+            // 拿到路径后，传给初始化方法
+            MyConfigInit(configPath);
         }
 
-       public  string GetConfigValue(string? key)
+        public string GetConfigValue(string? key)
         {
             if (string.IsNullOrEmpty(key)) return string.Empty; // 安全检查建议加上
 
-            return  MyConfigContext.Service.GetValue(key);
+            return MyConfigContext.Service.GetValue(key);
         }
 
 
-
-        private void MyConfigInit()
+        private void MyConfigInit(string path)
         {
-            MyConfigContext.Initialize("Configs/custom_config.json"); // 替换为您想要的文件路径
+            // 使用传入的 path，而不是写死
+            MyConfigContext.Initialize(path);
+            //private void MyConfigInit()
+            //{
+            //    MyConfigContext.Initialize("Configs/custom_config.json"); // 替换为您想要的文件路径
 
             Console.WriteLine(MyConfigContext.Service.GetValue("Modules"));
 
@@ -47,13 +51,6 @@ namespace My.Services
                 key == "EnableLog" || key == "IsDebugMode");
         }
 
-
-
-
     }
-
-
-
-
 
 }
