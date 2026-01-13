@@ -1,0 +1,13 @@
+﻿// DeviceID, IP, Port, TagName, Address, DataType, ScanRate, Area, IsFavorite, Length(Regs)
+// 注意: Address 必须是纯数字(根据当前代码逻辑)，Area 必须是 Coils 或 Registers,,,,,,,
+// --- PLC 1 (西门子模拟) ---,,,,,,,
+PLC_01, 127.0.0.1,502, System_Start,100, Bool,100,  Coils, False
+PLC_01, 127.0.0.1,502, System_Reset,101, Bool,100,  Coils, False
+PLC_01, 127.0.0.1,502, Motor_Temp,200, Float,1000, Registers, True   
+PLC_01, 127.0.0.1,502, Motor_Speed,202, Int16,100,  Registers, True   
+PLC_01, 127.0.0.1,502, Product_Count,204, Int32,1000, Registers, False
+PLC_01, 127.0.0.1,502, Product_Name,300, String,1000, Registers, True, 10
+// --- PLC 2 (汇川模拟) ---,,,,,,,
+PLC_02, 127.0.0.2,502, Robot_X,500, Float,200, Registers
+PLC_02, 127.0.0.2,502, Robot_Y,502, Float,200, Registers
+PLC_02, 127.0.0.2,502, Robot_Grip,10,  Bool,100, Coils

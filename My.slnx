@@ -1,4 +1,5 @@
 <Solution>
   <Project Path="My.csproj" />
   <Project Path="MyConfig/MyConfig.csproj" Id="2c9c0bde-fd33-44e8-bbe8-23d1799051be" />
+  <Project Path="MyModbus/MyModbus.csproj" Id="5792b920-9f05-466b-a729-2b064e309955" />
 </Solution>

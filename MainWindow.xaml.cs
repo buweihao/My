@@ -18,9 +18,12 @@ namespace My
     public partial class MainWindow : Window
     {
         private HotKeyManager _hotKeyManager;
-        public MainWindow()
+        private MainViewModel _vm;
+        public MainWindow(MainViewModel vm)
         {
             InitializeComponent();
+            this.DataContext = vm;
+            _vm = vm;
             _hotKeyManager = new HotKeyManager(this);
             MyConfigInit();
             MyHotKeyInit();
@@ -32,11 +35,15 @@ namespace My
             {
                 MyConfigContext.ShowPanel();
             });
+            _hotKeyManager.Register(Key.F11, () =>
+            {
+                _vm.OpenDashboardCommand.Execute(null);
+            });
         }
 
         private void MyConfigInit()
         {
-            MyConfigContext.Initialize("custom_config.json"); // 替换为您想要的文件路径
+            MyConfigContext.Initialize("Configs/custom_config.json"); // 替换为您想要的文件路径
 
             Console.WriteLine(MyConfigContext.Service.GetValue("Modules"));
 

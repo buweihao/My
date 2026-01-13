@@ -4,10 +4,14 @@
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:My"
+        xmlns:modbus="clr-namespace:MyModbus;assembly=MyModbus"
         mc:Ignorable="d"
         xmlns:config="clr-namespace:MyConfig.Controls;assembly=MyConfig"
         Title="MainWindow" Height="450" Width="800">
-    <Grid>
+    <StackPanel>
+        <Border Padding="10" Background="#333">
+            <modbus:DashboardEntry HorizontalAlignment="Right"/>
+        </Border>
         <config:ConfigButton  />
-    </Grid>
+    </StackPanel>
 </Window>

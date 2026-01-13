@@ -1,0 +1,8 @@
+﻿<UserControl x:Class="MyModbus.DashboardEntry"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+    <Button Content="⚙ 打开监控面板" 
+Command="{Binding OpenDashboardCommand}"
+            Padding="15,8" Background="#007ACC" Foreground="White" 
+            FontWeight="Bold" BorderThickness="0" Cursor="Hand"/>
+</UserControl>

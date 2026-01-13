@@ -1,0 +1,69 @@
+﻿    <Window x:Class="MyModbus.TagDetailWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="点位详情" Height="350" Width="400"
+        WindowStartupLocation="CenterOwner" ResizeMode="NoResize"
+        Background="#1E1E1E">
+
+        <Window.Resources>
+            <Style TargetType="TextBlock">
+                <Setter Property="Foreground" Value="#CCC"/>
+                <Setter Property="VerticalAlignment" Value="Center"/>
+                <Setter Property="Margin" Value="5"/>
+            </Style>
+            <Style TargetType="TextBox">
+                <Setter Property="Height" Value="26"/>
+                <Setter Property="VerticalContentAlignment" Value="Center"/>
+            </Style>
+        </Window.Resources>
+
+        <StackPanel Margin="20">
+            <TextBlock Text="{Binding Config.TagName}" FontSize="24" Foreground="White" FontWeight="Bold" Margin="0,0,0,20"/>
+
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="100"/>
+                    <ColumnDefinition Width="*"/>
+                </Grid.ColumnDefinitions>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                </Grid.RowDefinitions>
+
+                <TextBlock Grid.Row="0" Text="物理地址:" Foreground="#888"/>
+                <TextBlock Grid.Row="0" Grid.Column="1" Text="{Binding Config.Address}" FontWeight="Bold"/>
+
+                <TextBlock Grid.Row="1" Text="数据类型:" Foreground="#888"/>
+                <TextBlock Grid.Row="1" Grid.Column="1" Text="{Binding Config.DataType}"/>
+
+                <TextBlock Grid.Row="2" Text="扫描区域:" Foreground="#888"/>
+                <TextBlock Grid.Row="2" Grid.Column="1" Text="{Binding Config.Area}"/>
+
+                <TextBlock Grid.Row="3" Text="当前数值:" Foreground="#888"/>
+                <TextBlock Grid.Row="3" Grid.Column="1" Text="{Binding Value}" FontSize="18" Foreground="#00FF7F"/>
+
+                <TextBlock Grid.Row="4" Text="通信质量:" Foreground="#888"/>
+                <TextBlock Grid.Row="4" Grid.Column="1" Text="{Binding IsGood}"/>
+            </Grid>
+
+            <Separator Background="#444" Margin="0,20"/>
+
+            <TextBlock Text="写入控制 (Write Control)" FontWeight="Bold" Margin="0,0,0,10"/>
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="80"/>
+                </Grid.ColumnDefinitions>
+                <TextBox x:Name="WriteBox" Text="{Binding Value, Mode=OneWay}" />
+                <Button Grid.Column="1" Content="写入" Margin="10,0,0,0" Click="BtnWrite_Click"/>
+            </Grid>
+
+            <TextBlock x:Name="MsgText" Foreground="Red" Margin="0,10,0,0"/>
+
+        </StackPanel>
+    </Window>
+

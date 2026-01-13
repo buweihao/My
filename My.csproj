@@ -10,14 +10,20 @@
 
   <ItemGroup>
     <Compile Remove="MyConfig\**" />
+    <Compile Remove="MyModbus\**" />
     <EmbeddedResource Remove="MyConfig\**" />
+    <EmbeddedResource Remove="MyModbus\**" />
     <None Remove="MyConfig\**" />
+    <None Remove="MyModbus\**" />
     <Page Remove="MyConfig\**" />
+    <Page Remove="MyModbus\**" />
   </ItemGroup>
 
   <ItemGroup>
     <PackageReference Include="CommunityToolkit.Mvvm" Version="8.4.0" />
     <PackageReference Include="HandyControl" Version="3.5.1" />
+    <PackageReference Include="HslCommunication" Version="12.2.0" />
+    <PackageReference Include="Microsoft.Extensions.Hosting" Version="10.0.1" />
     <PackageReference Include="Newtonsoft.Json" Version="13.0.4" />
   </ItemGroup>
 
@@ -25,10 +31,16 @@
     <Reference Include="MyConfig">
       <HintPath>MyConfig\bin\Debug\net8.0-windows7.0\MyConfig.dll</HintPath>
     </Reference>
+    <Reference Include="MyModbus">
+      <HintPath>MyModbus\bin\Debug\net8.0-windows\MyModbus.dll</HintPath>
+    </Reference>
   </ItemGroup>
 
   <ItemGroup>
-    <None Update="custom_config.json">
+    <None Update="Configs\config.csv">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Update="Configs\custom_config.json">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
   </ItemGroup>
