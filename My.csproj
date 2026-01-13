@@ -10,12 +10,16 @@
 
   <ItemGroup>
     <Compile Remove="MyConfig\**" />
+    <Compile Remove="MyModbus.Tests\**" />
     <Compile Remove="MyModbus\**" />
     <EmbeddedResource Remove="MyConfig\**" />
+    <EmbeddedResource Remove="MyModbus.Tests\**" />
     <EmbeddedResource Remove="MyModbus\**" />
     <None Remove="MyConfig\**" />
+    <None Remove="MyModbus.Tests\**" />
     <None Remove="MyModbus\**" />
     <Page Remove="MyConfig\**" />
+    <Page Remove="MyModbus.Tests\**" />
     <Page Remove="MyModbus\**" />
   </ItemGroup>
 

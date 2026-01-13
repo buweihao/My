@@ -382,7 +382,16 @@ namespace MyModbus
                                 {
                                     double rawNum = Convert.ToDouble(parsedValue);
                                     double finalNum = rawNum * tag.Scale + tag.Offset;
-                                    parsedValue = (tag.DataType == DataType.Float) ? (float)finalNum : finalNum;
+
+                                    // ✅ 修改方案：使用 if-else 明确赋值，阻止编译器进行类型提升
+                                    if (tag.DataType == DataType.Float)
+                                    {
+                                        parsedValue = (float)finalNum;
+                                    }
+                                    else
+                                    {
+                                        parsedValue = finalNum;
+                                    }
                                 }
                             }
                         }
