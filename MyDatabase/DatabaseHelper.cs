@@ -306,6 +306,7 @@ namespace MyDatabase
             {
                 try
                 {
+                    
                     db.Ado.ExecuteCommand("PRAGMA journal_mode=WAL;");
                     db.Ado.ExecuteCommand("PRAGMA synchronous=NORMAL;");
                 }

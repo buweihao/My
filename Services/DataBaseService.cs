@@ -158,7 +158,7 @@ namespace My.Services
     public class DeviceLog
     {
         [SugarColumn(IsPrimaryKey = true, IsIdentity = true)]
-        public long Id { get; set; }
+        public int Id { get; set; }
 
         public string Module { get; set; } // 来源模块 (例如: PLC, Vision)
         public string Level { get; set; } // Info, Warning, Error

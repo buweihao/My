@@ -12,21 +12,25 @@
     <Compile Remove="MyConfig\**" />
     <Compile Remove="MyConsole\**" />
     <Compile Remove="MyDatabase\**" />
+    <Compile Remove="MyLog\**" />
     <Compile Remove="MyModbus.Tests\**" />
     <Compile Remove="MyModbus\**" />
     <EmbeddedResource Remove="MyConfig\**" />
     <EmbeddedResource Remove="MyConsole\**" />
     <EmbeddedResource Remove="MyDatabase\**" />
+    <EmbeddedResource Remove="MyLog\**" />
     <EmbeddedResource Remove="MyModbus.Tests\**" />
     <EmbeddedResource Remove="MyModbus\**" />
     <None Remove="MyConfig\**" />
     <None Remove="MyConsole\**" />
     <None Remove="MyDatabase\**" />
+    <None Remove="MyLog\**" />
     <None Remove="MyModbus.Tests\**" />
     <None Remove="MyModbus\**" />
     <Page Remove="MyConfig\**" />
     <Page Remove="MyConsole\**" />
     <Page Remove="MyDatabase\**" />
+    <Page Remove="MyLog\**" />
     <Page Remove="MyModbus.Tests\**" />
     <Page Remove="MyModbus\**" />
   </ItemGroup>
@@ -35,8 +39,12 @@
     <PackageReference Include="CommunityToolkit.Mvvm" Version="8.4.0" />
     <PackageReference Include="HandyControl" Version="3.5.1" />
     <PackageReference Include="HslCommunication" Version="12.2.0" />
+    <PackageReference Include="MethodDecorator.Fody" Version="1.1.1" />
     <PackageReference Include="Microsoft.Extensions.Hosting" Version="10.0.1" />
     <PackageReference Include="Newtonsoft.Json" Version="13.0.4" />
+    <PackageReference Include="Serilog" Version="4.3.0" />
+    <PackageReference Include="Serilog.Sinks.Console" Version="6.1.1" />
+    <PackageReference Include="Serilog.Sinks.File" Version="7.0.0" />
     <PackageReference Include="SqlSugarCore" Version="5.1.4.211" />
   </ItemGroup>
 
@@ -49,6 +57,9 @@
     </Reference>
     <Reference Include="MyDatabase">
       <HintPath>MyDatabase\bin\Debug\net8.0-windows\MyDatabase.dll</HintPath>
+    </Reference>
+    <Reference Include="MyLog">
+      <HintPath>MyLog\bin\Debug\net8.0-windows\MyLog.dll</HintPath>
     </Reference>
     <Reference Include="MyModbus">
       <HintPath>MyModbus\bin\Debug\net8.0-windows\MyModbus.dll</HintPath>

@@ -7,6 +7,7 @@ using System.Configuration;
 using System.Data;
 using System.Windows;
 using MyDatabase;
+using MyLog;
 namespace My
 {
     /// <summary>
@@ -45,12 +46,19 @@ namespace My
                     , typeof(DeviceLog)
                 );
 
+                services.AddMyLogService();
+
+
                 //调用者内容
                 services.AddSingleton<IModbusService, ModbusService>();
-
+                services.AddSingleton<ILoggerService, SerilogLoggerService>(); // 注册 Log
                 services.AddSingleton<MainViewModel>();
                 services.AddSingleton<MainWindow>();
             });
+
+
+            var loggerService = Host.Services.GetRequiredService<ILoggerService>();
+            AopLogManager.SetLogger(loggerService);
         }
 
         protected override async void OnStartup(StartupEventArgs e)
@@ -67,6 +75,7 @@ namespace My
         protected override async void OnExit(ExitEventArgs e)
         {
             await Host.StopAsync(); // 🛑 引擎会自动停止
+
             base.OnExit(e);
         }
 

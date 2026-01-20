@@ -1,4 +1,5 @@
 ﻿using My.Services;
+using MyLog;
 using MyModbus;
 using System;
 using System.Collections.Generic;
@@ -24,10 +25,13 @@ namespace My
         public ICommand OpenDashboardCommand { get; }
         #endregion
 
+        #region Log
 
+        private readonly ILoggerService _logger;
+        #endregion
 
         // ✅ 构造函数不再包含 DataBus 和 Engine
-        public MainViewModel(PlcLink plc, IModbusService machine, Func<DashboardWindow> dashboardFactory, IConfigService configService)
+        public MainViewModel(PlcLink plc, IModbusService machine, Func<DashboardWindow> dashboardFactory, IConfigService configService, ILoggerService logger)
         {
             #region MyModbus
 
@@ -40,6 +44,15 @@ namespace My
             // 订阅业务事件，而不是 Modbus 事件
             _machine.SpeedChanged += OnSpeedChanged;
             #endregion
+
+            #region  Log
+            _logger = logger;
+            StartProduction();
+
+
+            #endregion
+
+
         }
         // 纯 UI 逻辑：打开子窗口
         #region MyModbus
@@ -55,5 +68,15 @@ namespace My
             Console.WriteLine($"当前转速: {newSpeed}");
         }
         #endregion
+
+
+        #region  Log
+        [MethodLogger]
+        public void StartProduction()
+        {
+            _logger.Info("Business logic inside StartProduction...");
+        }
+        #endregion
+
     }
 }
