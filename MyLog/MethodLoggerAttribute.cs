@@ -18,18 +18,18 @@ namespace MyLog
 
         public void OnEntry()
         {
-            // 从静态桥梁获取 Logger，如果 App 还没启动完成，可能为空，需要判空
-            AopLogManager.ServiceProvider?.Debug("--> Entering {MethodName} with args: {@Args}", _method.Name, (object)_arguments);
+            // 使用配置的委托执行日志记录
+            AopLogManager.Options.OnEntry?.Invoke(AopLogManager.ServiceProvider, _method, _arguments);
         }
 
         public void OnExit()
         {
-            AopLogManager.ServiceProvider?.Debug("<-- Exiting {MethodName}", _method.Name);
+            AopLogManager.Options.OnExit?.Invoke(AopLogManager.ServiceProvider, _method);
         }
 
         public void OnException(Exception exception)
         {
-            AopLogManager.ServiceProvider?.Error(exception, "!! Exception in {MethodName} with args: {@Args}", _method.Name, (object)_arguments);
+            AopLogManager.Options.OnException?.Invoke(AopLogManager.ServiceProvider, _method, _arguments, exception);
         }
     }
 }
