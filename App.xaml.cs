@@ -1,11 +1,12 @@
-﻿using System.Configuration;
-using System.Data;
-using Microsoft.Extensions.DependencyInjection;
+﻿using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
-using System.Windows;
-using MyModbus;
 using My.Services;
-
+using MyModbus;
+using SqlSugar;
+using System.Configuration;
+using System.Data;
+using System.Windows;
+using MyDatabase;
 namespace My
 {
     /// <summary>
@@ -20,30 +21,33 @@ namespace My
         {
             Host = AppBootstrapper.CreateHost(services =>
             {
-                // ========================================================
-                // 1. 【自主选择】在这里显式注册 MyModbus
-                // 如果你不需要 Modbus，直接把这两行注释掉即可！
-                // ========================================================
+                //库内容
+
                 string modbusConfigPath = "Configs/config.csv";
                 services.AddMyModbusCore(modbusConfigPath); // 假设这是你的扩展方法
 
-                // ========================================================
-                // 2. 注册配置服务 (你的自定义 ConfigService)
-                // ========================================================
                 string jsonConfigPath = "Configs/custom_config.json";
                 services.AddSingleton<IConfigService>(provider =>
                 {
                     return new ConfigService(jsonConfigPath);
                 });
 
-                // ========================================================
-                // 3. 注册业务服务
-                // ========================================================
+                var dbConfig = new ConnectionConfig
+                {
+                    ConnectionString = "DataSource=IndustrialData.db", // 👈 硬编码路径
+                    DbType = SqlSugar.DbType.Sqlite,
+                    IsAutoCloseConnection = true,
+                    InitKeyType = InitKeyType.Attribute,
+                    MoreSettings = new ConnMoreSettings { IsAutoRemoveDataCache = true }
+                };
+                services.AddMySqlSugarStore(dbConfig
+                    , typeof(ProductionData)
+                    , typeof(DeviceLog)
+                );
+
+                //调用者内容
                 services.AddSingleton<IModbusService, ModbusService>();
 
-                // ========================================================
-                // 4. 注册 UI
-                // ========================================================
                 services.AddSingleton<MainViewModel>();
                 services.AddSingleton<MainWindow>();
             });

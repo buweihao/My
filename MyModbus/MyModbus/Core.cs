@@ -252,6 +252,78 @@ namespace MyModbus
                 new List<Action<TagData>> { callback },
                 (key, list) => { list.Add(callback); return list; });
         }
+        /// <summary>
+        /// 【核心重载】批量订阅：返回 值数组 + 整体质量标志
+        /// </summary>
+        /// <typeparam name="T">期望的返回类型</typeparam>
+        /// <param name="tagNames">点位名称列表</param>
+        /// <param name="callback">回调函数：(数据数组, 整体质量是否良好)</param>
+        public void Subscribe<T>(IEnumerable<string> tagNames, Action<T[], bool> callback)
+        {
+            if (tagNames == null || callback == null) return;
+
+            // 1. 固化查询列表
+            var tags = tagNames.ToArray();
+
+            // 2. 定义统一处理逻辑
+            Action<TagData> groupHandler = (triggerData) =>
+            {
+                T[] results = new T[tags.Length];
+                bool isAllGood = true; // 默认为好
+
+                for (int i = 0; i < tags.Length; i++)
+                {
+                    // 从缓存获取完整 TagData（包含 IsQualityGood）
+                    TagData? data = GetTagData(tags[i]);
+
+                    // 检查：如果任意一个点位数据为空或质量为 Bad
+                    if (data == null || !data.Value.IsQualityGood)
+                    {
+                        isAllGood = false;
+                        // 注意：这里不要直接 return，即使坏了也要把数组填满（防止空引用），
+                        // 只是把 isAllGood 标记为 false 告诉上层。
+                    }
+
+                    // 转换数值（复用之前的 ConvertValue 辅助方法）
+                    results[i] = ConvertValue<T>(data?.Value);
+                }
+
+                // 3. 【关键】将数据和质量标志一起传给订阅者
+                callback(results, isAllGood);
+            };
+
+            // 3. 逐个订阅
+            foreach (var tag in tags)
+            {
+                Subscribe(tag, groupHandler);
+            }
+        }
+        /// <summary>
+        /// 内部辅助：通用类型转换
+        /// </summary>
+        private T ConvertValue<T>(object value)
+        {
+            if (value == null) return default(T);
+
+            // 1. 如果类型直接匹配 (最快)
+            if (value is T tVal) return tVal;
+
+            try
+            {
+                // 2. 特殊处理 String
+                if (typeof(T) == typeof(string))
+                {
+                    return (T)(object)value.ToString();
+                }
+
+                // 3. 通用转换 (处理 float <-> double, int <-> short 等)
+                return (T)Convert.ChangeType(value, typeof(T));
+            }
+            catch
+            {
+                return default(T);
+            }
+        }
 
         /// <summary>
         /// 批量更新数据 (由 Engine 采集线程调用)

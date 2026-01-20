@@ -1,7 +1,9 @@
 <Solution>
+  <Project Path="../MyDatabase.Tests/MyDatabase.Tests.csproj" Id="3a7eb699-2ca7-49e1-a21c-bc3bfe26250c" />
   <Project Path="My.csproj" />
   <Project Path="MyConfig/MyConfig.csproj" Id="2c9c0bde-fd33-44e8-bbe8-23d1799051be" />
   <Project Path="MyConsole/MyConsole.csproj" Id="84c39a7b-b76c-4dc5-a057-5c97145dfa6c" />
+  <Project Path="MyDatabase/MyDatabase.csproj" Id="1c232308-6c12-4cca-ab33-f21b78475ac9" />
   <Project Path="MyModbus.Tests/MyModbus.Tests.csproj" Id="27141c69-cfd6-4a3d-b572-1dedd45cfe74" />
   <Project Path="MyModbus/MyModbus.csproj" Id="5792b920-9f05-466b-a729-2b064e309955" />
 </Solution>

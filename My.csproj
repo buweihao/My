@@ -11,18 +11,22 @@
   <ItemGroup>
     <Compile Remove="MyConfig\**" />
     <Compile Remove="MyConsole\**" />
+    <Compile Remove="MyDatabase\**" />
     <Compile Remove="MyModbus.Tests\**" />
     <Compile Remove="MyModbus\**" />
     <EmbeddedResource Remove="MyConfig\**" />
     <EmbeddedResource Remove="MyConsole\**" />
+    <EmbeddedResource Remove="MyDatabase\**" />
     <EmbeddedResource Remove="MyModbus.Tests\**" />
     <EmbeddedResource Remove="MyModbus\**" />
     <None Remove="MyConfig\**" />
     <None Remove="MyConsole\**" />
+    <None Remove="MyDatabase\**" />
     <None Remove="MyModbus.Tests\**" />
     <None Remove="MyModbus\**" />
     <Page Remove="MyConfig\**" />
     <Page Remove="MyConsole\**" />
+    <Page Remove="MyDatabase\**" />
     <Page Remove="MyModbus.Tests\**" />
     <Page Remove="MyModbus\**" />
   </ItemGroup>
@@ -33,6 +37,7 @@
     <PackageReference Include="HslCommunication" Version="12.2.0" />
     <PackageReference Include="Microsoft.Extensions.Hosting" Version="10.0.1" />
     <PackageReference Include="Newtonsoft.Json" Version="13.0.4" />
+    <PackageReference Include="SqlSugarCore" Version="5.1.4.211" />
   </ItemGroup>
 
   <ItemGroup>
@@ -41,6 +46,9 @@
     </Reference>
     <Reference Include="MyConsole">
       <HintPath>MyConsole\bin\Debug\net8.0-windows\MyConsole.dll</HintPath>
+    </Reference>
+    <Reference Include="MyDatabase">
+      <HintPath>MyDatabase\bin\Debug\net8.0-windows\MyDatabase.dll</HintPath>
     </Reference>
     <Reference Include="MyModbus">
       <HintPath>MyModbus\bin\Debug\net8.0-windows\MyModbus.dll</HintPath>
