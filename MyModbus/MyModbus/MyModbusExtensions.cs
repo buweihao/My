@@ -1,4 +1,5 @@
-﻿using Microsoft.Extensions.DependencyInjection;
+﻿using BasicRegionNavigation.Helper;
+using Microsoft.Extensions.DependencyInjection;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -75,40 +76,52 @@ namespace MyModbus
         /// </summary>
         public static Device Clone(this Device template, string newDeviceId, string newIp, int? newPort = null)
         {
+            if (template == null) throw new ArgumentNullException(nameof(template));
+
+            // 1. 创建新设备基础对象
             var newDevice = new Device
             {
                 DeviceId = newDeviceId,
                 IpAddress = newIp,
-                Port = newPort ?? template.Port, // 没传就用模板的端口
+                Port = newPort ?? template.Port,
                 Station = template.Station,
                 Timeout = template.Timeout,
                 IsActive = template.IsActive,
                 ByteOrder = template.ByteOrder,
                 IsStringReverse = template.IsStringReverse,
-                Tags = new List<Tag>() // 创建新列表
+                Tags = new List<Tag>() // 初始化空列表准备填充
             };
 
-            // 深拷贝 Tags，防止引用同一对象
-            foreach (var tag in template.Tags)
+            // 2. 遍历并深拷贝所有点位 (Tags)
+            if (template.Tags != null)
             {
-                newDevice.Tags.Add(new Tag
+                foreach (var tag in template.Tags)
                 {
-                    // 核心技巧：自动给 TagName 加上设备前缀，防止重名！
-                    // 例如模板叫 "Speed", 新设备叫 "Module_01_Speed"
-                    // 如果你的 TagName 已经包含了设备名，可以根据需求调整这里的逻辑
-                    TagName = ReplacePrefix(tag.TagName, template.DeviceId, newDeviceId),
+                    // 1. 【库调用】剥离旧的模板ID
+                    // 比如 "Template_IO_FeedLift" -> "IO_FeedLift"
+                    string baseTagName = ModbusNamingHelper.StripDeviceId(tag.TagName, template.DeviceId);
 
-                    Description = tag.Description,
-                    Address = tag.Address,
-                    StartAddress = tag.StartAddress,
-                    Length = tag.Length,
-                    Area = tag.Area,
-                    DataType = tag.DataType,
-                    ScanRate = tag.ScanRate,
-                    Scale = tag.Scale,
-                    Offset = tag.Offset,
-                    IsFavorite = tag.IsFavorite
-                });
+                    // 2. 【库调用】加上新的设备ID
+                    // "IO_FeedLift" -> "1_IO_FeedLift"
+                    string newTagName = ModbusNamingHelper.Format(newDeviceId, baseTagName);
+                    // C. 创建新点位对象
+                    var newTag = new Tag
+                    {
+                        TagName = newTagName,
+                        Description = tag.Description,
+                        Address = tag.Address,
+                        StartAddress = tag.StartAddress,
+                        Length = tag.Length,
+                        Area = tag.Area,
+                        DataType = tag.DataType,
+                        ScanRate = tag.ScanRate,
+                        Scale = tag.Scale,
+                        Offset = tag.Offset,
+                        IsFavorite = tag.IsFavorite
+                    };
+
+                    newDevice.Tags.Add(newTag);
+                }
             }
 
             return newDevice;

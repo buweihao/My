@@ -8,6 +8,7 @@ using System.Data;
 using System.Windows;
 using MyDatabase;
 using MyLog;
+// using My.Configs; // Removed
 namespace My
 {
     /// <summary>
@@ -46,19 +47,26 @@ namespace My
                     , typeof(DeviceLog)
                 );
 
-                services.AddMyLogService();
-
-
                 //调用者内容
                 services.AddSingleton<IModbusService, ModbusService>();
-                services.AddSingleton<ILoggerService, SerilogLoggerService>(); // 注册 Log
+                
+                // 注册业务服务
+                services.AddSingleton<IUserCalculationService, UserCalculationService>();
+
+                // 3. 配置 Log
+                // 将 IMyLogConfig 映射到已经注册的 IUserCalculationService 实例
+                // 这样 MyLog 就会使用 UserCalculationService 中定义的配置
+                services.AddSingleton<IMyLogConfig>(sp => sp.GetRequiredService<IUserCalculationService>());
+                
+                // 注册 MyLog 服务
+                services.AddMyLogService();
+
                 services.AddSingleton<MainViewModel>();
                 services.AddSingleton<MainWindow>();
             });
 
 
             var loggerService = Host.Services.GetRequiredService<ILoggerService>();
-            AopLogManager.SetLogger(loggerService);
         }
 
         protected override async void OnStartup(StartupEventArgs e)

@@ -23,24 +23,34 @@ namespace My
         public ICommand StartCommand { get; }
         public ICommand SetSpeedCommand { get; }
         public ICommand OpenDashboardCommand { get; }
+        public ICommand RunCalculationCommand { get; }
         #endregion
 
         #region Log
 
         private readonly ILoggerService _logger;
+        private readonly IUserCalculationService _calculationService;
         #endregion
 
         // ✅ 构造函数不再包含 DataBus 和 Engine
-        public MainViewModel(PlcLink plc, IModbusService machine, Func<DashboardWindow> dashboardFactory, IConfigService configService, ILoggerService logger)
+        public MainViewModel(PlcLink plc, 
+            IModbusService machine, 
+            Func<DashboardWindow> dashboardFactory, 
+            IConfigService configService, 
+            ILoggerService logger,
+            IUserCalculationService calculationService)
         {
             #region MyModbus
 
             Plc = plc;
             _machine = machine;
+            _calculationService = calculationService;
             _dashboardFactory = dashboardFactory;
 
             StartCommand = new RelayCommand(_ => _machine.StartMachine());
             OpenDashboardCommand = new RelayCommand(_ => OpenDashboard());
+            // 演示业务逻辑调用和日志
+            RunCalculationCommand = new RelayCommand(async _ => await RunCalculationDemo());
             // 订阅业务事件，而不是 Modbus 事件
             _machine.SpeedChanged += OnSpeedChanged;
             #endregion
@@ -71,10 +81,36 @@ namespace My
 
 
         #region  Log
-        [MethodLogger]
         public void StartProduction()
         {
             _logger.Info("Business logic inside StartProduction...");
+        }
+
+        private async Task RunCalculationDemo()
+        {
+            _logger.Info("--- Demo Start ---");
+            
+            // 1. 同步调用
+            var sum = _calculationService.Add(10, 20);
+            _logger.Info($"Add Calculation Result: {sum}");
+
+            // 2. 异步调用
+            _logger.Info("Starting heavy calculation...");
+            var result = await _calculationService.HeavyCalculationAsync(144);
+            _logger.Info($"Heavy Calculation Result: {result}");
+
+            // 3. 模拟异常
+            try
+            {
+                _logger.Info("Simulating error...");
+                _calculationService.SimulateError();
+            }
+            catch (Exception ex)
+            {
+                _logger.Warn("Caught exception in ViewModel: " + ex.Message);
+            }
+
+            _logger.Info("--- Demo End ---");
         }
         #endregion
 
