@@ -12,6 +12,7 @@
     <StackPanel>
         <Border Padding="10" Background="#333">
             <modbus:DashboardEntry HorizontalAlignment="Right"/>
+            
         </Border>
         <config:ConfigButton  />
         <Button Content="Run Calculation Demo" Command="{Binding RunCalculationCommand}" Padding="10" Margin="10"/>

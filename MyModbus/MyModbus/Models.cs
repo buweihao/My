@@ -12,32 +12,82 @@ namespace MyModbus
     /// </summary>
     public class Device
     {
-        public string DeviceId { get; set; }        // 设备唯一标识 (如 "PLC_01")
-        public string IpAddress { get; set; }       // IP地址
-        public int Port { get; set; } = 502;        // 端口
-        public int Station { get; set; } = 1;       // 站号
-        public int Timeout { get; set; } = 1000;    // 超时时间
-        public bool IsActive { get; set; } = true;  // 启用/禁用开关
+        // --- 基础属性 ---
+        public string DeviceId { get; set; }
+        public string IpAddress { get; set; }
+        public int Port { get; set; } = 502;
+        public int Station { get; set; } = 1;
+        public int Timeout { get; set; } = 1000;
+        public bool IsActive { get; set; } = true;
 
-        // 这里持有该设备下所有的点位配置
+        // 数据字节序配置
+        public DataFormat ByteOrder { get; set; } // 假设你有这个枚举，或者具体的 ByteOrder 属性
+
+        // 点位列表
         public List<Tag> Tags { get; set; } = new List<Tag>();
-
-        // 预留给运行时使用的驱动对象（暂不实例化）
-        // public IDriver Driver { get; set; } 
-
-        /// <summary>
-        /// 数值类型的字节序 (默认 ABCD)
-        /// 控制 Int32, Float, Double 等多字节数值
-        /// </summary>
-        public DataFormat ByteOrder { get; set; } = DataFormat.ABCD;
-
-        /// <summary>
-        /// 字符串是否需要字节反转 (即：IsStringReverseByteWord)
-        /// 控制 String 类型。True 表示每两个字节互换位置。
-        /// </summary>
         public bool IsStringReverse { get; set; } = false;
-    }
 
+        /// <summary>
+        /// 【核心逻辑】克隆当前设备为新模组
+        /// 自动处理点位重命名
+        /// </summary>
+        /// <param name="newDeviceId">新模组ID (如 "1", "2")</param>
+        /// <param name="newIp">新IP地址</param>
+        /// <param name="newPort">新端口 (可选，不传则沿用)</param>
+        /// <returns>全新的 Device 实例</returns>
+        public Device CloneAsNew(string newDeviceId, string newIp, int? newPort = null)
+        {
+            // 1. 复制基础属性
+            var newDevice = new Device
+            {
+                DeviceId = newDeviceId,
+                IpAddress = newIp,
+                Port = newPort ?? this.Port,
+                Station = this.Station,
+                Timeout = this.Timeout,
+                IsActive = this.IsActive,
+                ByteOrder = this.ByteOrder, // 确保所有属性都复制了
+                Tags = new List<Tag>()        // 初始化新列表
+            };
+
+            // 2. 深拷贝 Tags 并重命名
+            if (this.Tags != null)
+            {
+                foreach (var oldTag in this.Tags)
+                {
+                    // --- 关键点 ---
+                    // 调用 Helper 进行改名，业务逻辑完全不需要介入
+                    string newTagName = ModbusKeyHelper.Reparent(oldTag.TagName, this.DeviceId, newDeviceId);
+                    var newTag = new Tag
+                    {
+                        TagName = newTagName,
+
+                        // --- 复制物理寻址核心 ---
+                        Address = oldTag.Address,
+                        StartAddress = oldTag.StartAddress, // 必须复制解析后的起始地址
+                        Length = oldTag.Length,
+                        Area = oldTag.Area,                 // 必须复制存储区类型 (Coils/Registers)
+                        DataType = oldTag.DataType,
+
+                        // --- 复制基础标识 ---
+                        Description = oldTag.Description,
+
+                        // --- 复制采集策略 ---
+                        ScanRate = oldTag.ScanRate,
+
+                        // --- 复制数据处理 ---
+                        Scale = oldTag.Scale,
+                        Offset = oldTag.Offset,
+
+                        // --- 复制用户偏好 ---
+                        IsFavorite = oldTag.IsFavorite
+                    };
+                    newDevice.Tags.Add(newTag);
+                }
+            }
+            return newDevice;
+        }
+    }
     /// <summary>
     /// 点位模型：最小采集单元
     /// </summary>
@@ -63,9 +113,6 @@ namespace MyModbus
 
         public bool IsFavorite { get; set; } = false;
 
-        // --- 运行时数据 (之后步骤会用到) ---
-        // public object CurrentValue { get; set; }
-        // public DateTime LastUpdateTime { get; set; }
     }
 
     #endregion
