@@ -27,7 +27,25 @@ namespace My
 
                 string modbusConfigPath = "Configs/config.csv";
                 services.AddMyModbusCore(modbusConfigPath); // 假设这是你的扩展方法
+                services.AddMyModbusCore(modbusConfigPath, devices =>
+                {
+                    // 方式 1：针对特定设备修改 (根据 config.csv 中的 DeviceID)
+                    //var plc1 = devices.FirstOrDefault(d => d.DeviceId == "PLC_01");
+                    //if (plc1 != null)
+                    //{
+                    //    // 设置字节序，例如 CDAB (双字反转)
+                    //    plc1.ByteOrder = MyModbus.DataFormat.CDAB;
+                    //    // 开启字符串字内反转 (例如 "BA" -> "AB")
+                    //    plc1.IsStringReverse = true;
+                    //}
 
+                    // 方式 2：如果所有设备配置都一样，可以直接遍历修改
+                    foreach (var device in devices)
+                    {
+                        device.ByteOrder = MyModbus.DataFormat.CDAB; // 设置为小端模式
+                        device.IsStringReverse = true;
+                    }
+                });
                 string jsonConfigPath = "Configs/custom_config.json";
                 services.AddSingleton<IConfigService>(provider =>
                 {
