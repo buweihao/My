@@ -102,17 +102,17 @@ namespace MyModbus
             {
                 _modbus.ByteTransform.IsStringReverseByteWord = true;
             }
-            Task.Run(async () =>
-            {
+            //Task.Run(async () =>
+            //{
 
-                while(true)
-                {
-                    await Task.Delay(1000);
+            //    while(true)
+            //    {
+            //        await Task.Delay(1000);
 
-                    Console.WriteLine(Name+IsConnected);
-                }
+            //        Console.WriteLine(Name+IsConnected);
+            //    }
 
-            });
+            //});
         }
 
         #region 核心逻辑 (自动重连机制)
