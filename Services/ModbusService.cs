@@ -36,6 +36,17 @@ namespace My.Services
             _engine = engine;
             _bus = bus;
             InitializeSubscriptions();
+
+            Task.Run(async () =>
+            {
+                while (true)
+                {
+                    await Task.Delay(500);
+                    Console.WriteLine(_engine.IsDeviceConnected("AA"));
+                }
+            });
+
+
         }
 
         private void InitializeSubscriptions()

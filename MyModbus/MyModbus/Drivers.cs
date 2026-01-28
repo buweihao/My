@@ -37,17 +37,18 @@ namespace MyModbus
         /// 核心写入：写入单个 Tag
         /// </summary>
         DriverResult<bool> Write(Tag tag, object value);
+        bool IsConnected { get; }
     }
     public class HslModbusDriver : IDriver
     {
         // 持有你的底层接口 (需确保 IPlcDriver 已包含 ReadRawBytes 和 新的 Write 重载)
         private readonly IPlcDriver _plc;
+        public bool IsConnected => _plc.IsConnected;
 
         public HslModbusDriver(IPlcDriver plcDriver)
         {
             _plc = plcDriver;
         }
-
         /// <summary>
         /// 读取实现：将引擎的 Block 映射到底层的 RawBytes
         /// </summary>

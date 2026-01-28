@@ -26,24 +26,53 @@ namespace My
                 //库内容
 
                 string modbusConfigPath = "Configs/config.csv";
-                services.AddMyModbusCore(modbusConfigPath); // 假设这是你的扩展方法
+                //services.AddMyModbusCore(modbusConfigPath); // 假设这是你的扩展方法
+                //services.AddMyModbusCore(modbusConfigPath, devices =>
+                //{
+                //    // 方式 1：针对特定设备修改 (根据 config.csv 中的 DeviceID)
+                //    //var plc1 = devices.FirstOrDefault(d => d.DeviceId == "PLC_01");
+                //    //if (plc1 != null)
+                //    //{
+                //    //    // 设置字节序，例如 CDAB (双字反转)
+                //    //    plc1.ByteOrder = MyModbus.DataFormat.CDAB;
+                //    //    // 开启字符串字内反转 (例如 "BA" -> "AB")
+                //    //    plc1.IsStringReverse = true;
+                //    //}
+
+                //    // 方式 2：如果所有设备配置都一样，可以直接遍历修改
+                //    foreach (var device in devices)
+                //    {
+                //        device.ByteOrder = MyModbus.DataFormat.CDAB; // 设置为小端模式
+                //        device.IsStringReverse = true;
+                //    }
+                //});
                 services.AddMyModbusCore(modbusConfigPath, devices =>
                 {
-                    // 方式 1：针对特定设备修改 (根据 config.csv 中的 DeviceID)
-                    //var plc1 = devices.FirstOrDefault(d => d.DeviceId == "PLC_01");
-                    //if (plc1 != null)
-                    //{
-                    //    // 设置字节序，例如 CDAB (双字反转)
-                    //    plc1.ByteOrder = MyModbus.DataFormat.CDAB;
-                    //    // 开启字符串字内反转 (例如 "BA" -> "AB")
-                    //    plc1.IsStringReverse = true;
-                    //}
-
-                    // 方式 2：如果所有设备配置都一样，可以直接遍历修改
-                    foreach (var device in devices)
+                    // 定义克隆清单
+                    var cloneList = new[]
                     {
-                        device.ByteOrder = MyModbus.DataFormat.CDAB; // 设置为小端模式
-                        device.IsStringReverse = true;
+                        (Template: "PLC_Peripheral", NewId: "AA", Ip: "127.0.0.1"),
+                    };
+
+                    var templatesToRemove = new HashSet<Device>();
+
+                    foreach (var item in cloneList)
+                    {
+                        var template = devices.FirstOrDefault(d => d.DeviceId == item.Template);
+                        if (template != null)
+                        {
+                            templatesToRemove.Add(template);
+                            devices.Add(template.CloneAsNew(item.NewId, item.Ip));
+                        }
+                        else
+                        {
+                            System.Diagnostics.Debug.WriteLine($"警告：找不到模板设备 {item.Template}");
+                        }
+                    }
+
+                    foreach (var t in templatesToRemove)
+                    {
+                        devices.Remove(t);
                     }
                 });
                 string jsonConfigPath = "Configs/custom_config.json";

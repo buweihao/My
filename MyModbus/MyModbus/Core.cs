@@ -651,6 +651,15 @@ namespace MyModbus
             _driverFactory = driverFactory; // <--- 保存工厂
             Init();
         }
+        public bool IsDeviceConnected(string deviceId)
+        {
+            if (_drivers.TryGetValue(deviceId, out var driver))
+            {
+                return driver.IsConnected;
+            }
+            // 如果驱动不存在（比如配置错误），视为未连接
+            return false;
+        }
 
         /// <summary>
         /// 1. 初始化阶段：创建驱动，建立索引
