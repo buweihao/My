@@ -20,6 +20,8 @@ namespace My
 
         private readonly Func<DashboardWindow> _dashboardFactory;
 
+        private readonly IDataBaseService _databaseService;
+
         public ICommand StartCommand { get; }
         public ICommand SetSpeedCommand { get; }
         public ICommand OpenDashboardCommand { get; }
@@ -38,7 +40,7 @@ namespace My
             Func<DashboardWindow> dashboardFactory, 
             IConfigService configService, 
             ILoggerService logger,
-            IUserCalculationService calculationService)
+            IUserCalculationService calculationService,IDataBaseService dataBaseService)
         {
             #region MyModbus
 
@@ -46,6 +48,7 @@ namespace My
             _machine = machine;
             _calculationService = calculationService;
             _dashboardFactory = dashboardFactory;
+            _databaseService = dataBaseService;
 
             StartCommand = new RelayCommand(_ => _machine.StartMachine());
             OpenDashboardCommand = new RelayCommand(_ => OpenDashboard());

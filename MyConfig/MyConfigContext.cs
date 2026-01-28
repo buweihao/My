@@ -47,6 +47,12 @@ namespace MyConfig
             _service = new ConfigHelper(configPath);
             _manager = new ConfigWindowManager(_service);
         }
+        // 修改此处：支持传入 params string[]
+        public static void Initialize(params string[] configPaths)
+        {
+            _service = new ConfigHelper(configPaths);
+            _manager = new ConfigWindowManager(_service);
+        }
         // 2. 【核心】提供一个静态方法，供 C# 代码直接调用
         public static void ShowPanel()
         {

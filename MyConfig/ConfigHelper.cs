@@ -1,36 +1,77 @@
 ﻿using Newtonsoft.Json;
-using Newtonsoft.Json.Linq; // 可以移除
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Text;
+using System.Linq; // 需要引用 System.Linq
 
 namespace MyConfig
 {
     public class ConfigHelper : IConfigService
     {
-        private string _configPath;
-        // 1. Settings 是唯一的“真实数据源”
+        // 存储所有配置文件的路径列表（有序）
+        private List<string> _configPaths = new List<string>();
+
+        // 记录每个 Key 属于哪个文件路径：Key -> FilePath
+        private Dictionary<string, string> _keySourceMap = new Dictionary<string, string>();
+
+        // 唯一的“真实数据源”（合并后的视图）
         public Dictionary<string, object> Settings { get; private set; } = new Dictionary<string, object>();
+
         private static readonly object _cfgLock = new();
 
-        public ConfigHelper(string configPath = "config.json")
+        /// <summary>
+        /// 构造函数支持传入一个或多个路径
+        /// </summary>
+        public ConfigHelper(params string[] configPaths)
         {
-            _configPath = configPath;
+            if (configPaths == null || configPaths.Length == 0)
+            {
+                _configPaths.Add("config.json"); // 默认值
+            }
+            else
+            {
+                _configPaths.AddRange(configPaths);
+            }
             ConfigInit();
         }
 
         public void ConfigInit()
         {
-            if (!File.Exists(_configPath))
-            {
-                // 如果文件不存在，初始化为空或者写入默认值
-                Settings = new Dictionary<string, object>();
-                return;
-            }
+            Settings.Clear();
+            _keySourceMap.Clear();
 
-            var json = File.ReadAllText(_configPath);
-            // 2. 只加载到 Settings 字典
-            Settings = JsonConvert.DeserializeObject<Dictionary<string, object>>(json) ?? new Dictionary<string, object>();
+            lock (_cfgLock)
+            {
+                // 依次加载所有文件
+                foreach (var path in _configPaths)
+                {
+                    if (!File.Exists(path)) continue; // 文件不存在则跳过，等待 Save 时可能创建
+
+                    try
+                    {
+                        var json = File.ReadAllText(path);
+                        var dict = JsonConvert.DeserializeObject<Dictionary<string, object>>(json);
+
+                        if (dict != null)
+                        {
+                            foreach (var kvp in dict)
+                            {
+                                // 1. 合并到主 Settings (后加载的会覆盖前面的)
+                                Settings[kvp.Key] = kvp.Value;
+
+                                // 2. 记录该 Key 的来源文件
+                                _keySourceMap[kvp.Key] = path;
+                            }
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        // 可以在这里记录日志
+                        System.Diagnostics.Debug.WriteLine($"加载配置文件失败: {path}, {ex.Message}");
+                    }
+                }
+            }
         }
 
         public bool SetConfig(string key, string value)
@@ -41,18 +82,18 @@ namespace MyConfig
             {
                 if (Settings == null) ConfigInit();
 
-                // 3. SetConfig 只更新内存，不写文件（提高性能）
-                // 如果键存在则更新，如果允许新增也可以直接赋值
-                if (Settings.ContainsKey(key))
-                {
-                    Settings[key] = value;
-                    return true;
-                }
-                // 如果想要支持新增配置项，取消下面的注释：
-                // Settings[key] = value; 
-                // return true;
+                // 更新内存中的值
+                Settings[key] = value;
 
-                return false;
+                // 维护来源映射
+                if (!_keySourceMap.ContainsKey(key))
+                {
+                    // 如果是全新的 Key，默认归属到第一个文件（主配置文件）
+                    // 或者是你指定的某个特定文件
+                    _keySourceMap[key] = _configPaths.FirstOrDefault() ?? "config.json";
+                }
+
+                return true;
             }
         }
 
@@ -60,12 +101,61 @@ namespace MyConfig
         {
             lock (_cfgLock)
             {
-                // 4. SaveConfig 统一负责将内存数据写入硬盘
-                // 这样 TextDialog 循环调用 SetConfig 后，最后调一次 SaveConfig 即可正确保存
-                var json = JsonConvert.SerializeObject(Settings, Newtonsoft.Json.Formatting.Indented);
+                // 1. 准备分桶：每个文件路径对应一个字典
+                var fileDataMap = new Dictionary<string, Dictionary<string, object>>();
 
-                //System.Windows.MessageBox.Show("正在保存到: " + System.IO.Path.GetFullPath(_configPath));
-                File.WriteAllText(_configPath, json, new UTF8Encoding(false));
+                // 确保所有注册的路径都有一个空字典（防止文件被置空或遗漏）
+                foreach (var path in _configPaths)
+                {
+                    fileDataMap[path] = new Dictionary<string, object>();
+                }
+
+                // 2. 将 Settings 中的数据分配回各自的文件桶
+                foreach (var kvp in Settings)
+                {
+                    string targetPath;
+
+                    // 查找该 Key 应该存入哪个文件
+                    if (_keySourceMap.TryGetValue(kvp.Key, out var sourcePath) && _configPaths.Contains(sourcePath))
+                    {
+                        targetPath = sourcePath;
+                    }
+                    else
+                    {
+                        // 如果找不到来源（异常情况），存入第一个文件
+                        targetPath = _configPaths.FirstOrDefault();
+                    }
+
+                    if (targetPath != null)
+                    {
+                        fileDataMap[targetPath][kvp.Key] = kvp.Value;
+                    }
+                }
+
+                // 3. 遍历分桶，执行物理写入
+                foreach (var fileEntry in fileDataMap)
+                {
+                    var path = fileEntry.Key;
+                    var data = fileEntry.Value;
+
+                    try
+                    {
+                        var json = JsonConvert.SerializeObject(data, Formatting.Indented);
+
+                        // 确保目录存在
+                        var dir = Path.GetDirectoryName(path);
+                        if (!string.IsNullOrEmpty(dir) && !Directory.Exists(dir))
+                        {
+                            Directory.CreateDirectory(dir);
+                        }
+
+                        File.WriteAllText(path, json, new UTF8Encoding(false));
+                    }
+                    catch (Exception ex)
+                    {
+                        System.Diagnostics.Debug.WriteLine($"保存配置文件失败: {path}, {ex.Message}");
+                    }
+                }
             }
         }
 
@@ -74,19 +164,15 @@ namespace MyConfig
             if (key == null) return "-";
             if (Settings.TryGetValue(key, out var value))
                 return value?.ToString();
-            // 这里根据需求决定是抛出异常还是返回默认值
             return string.Empty;
         }
 
-        // 5. 实现 GetConfigItems，从 Settings 字典中读取，确保数据一致性
         public IEnumerable<ConfigItem> GetConfigItems(Func<string, bool> predicate)
         {
             if (Settings == null) ConfigInit();
-
-            // 遍历字典，询问 predicate 是否需要这个 Key
+            // 使用 ToList 或数组快照以避免集合修改异常，虽然 Settings 变动通常在主线程
             foreach (var kvp in Settings)
             {
-                // predicate(kvp.Key) 执行调用者写的逻辑
                 if (predicate(kvp.Key))
                 {
                     yield return new ConfigItem
@@ -97,6 +183,5 @@ namespace MyConfig
                 }
             }
         }
-
     }
 }
