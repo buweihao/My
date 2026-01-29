@@ -246,7 +246,7 @@ namespace MyModbus
         /// <summary>
         /// 【新功能】精准订阅：只订阅特定名称的点位
         /// </summary>
-        public void Subscribe(string tagName, Action<TagData> callback)
+        public virtual void Subscribe(string tagName, Action<TagData> callback)
         {
             _tagSubscriptions.AddOrUpdate(tagName,
                 new List<Action<TagData>> { callback },
@@ -258,7 +258,7 @@ namespace MyModbus
         /// <typeparam name="T">期望的返回类型</typeparam>
         /// <param name="tagNames">点位名称列表</param>
         /// <param name="callback">回调函数：(数据数组, 整体质量是否良好)</param>
-        public void Subscribe<T>(IEnumerable<string> tagNames, Action<T[], bool> callback)
+        public virtual void Subscribe<T>(IEnumerable<string> tagNames, Action<T[], bool> callback)
         {
             if (tagNames == null || callback == null) return;
 
@@ -363,7 +363,7 @@ namespace MyModbus
             }
         }
 
-        public object GetValue(string tagName)
+        public virtual object GetValue(string tagName)
         {
             if (_cache.TryGetValue(tagName, out var data)) return data.Value;
             return null;
