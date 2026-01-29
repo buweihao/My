@@ -74,5 +74,70 @@ namespace MyModbus
             string compositeDevice = BuildDeviceId(moduleId, deviceId);
             return Build(compositeDevice, group, name);
         }
+        /// <summary>
+        /// 从完整点位名中提取模组ID
+        /// 原理：获取第一个分隔符前的字符串
+        /// 示例：1_PLC_Peripheral_Status -> 返回 "1"
+        /// </summary>
+        public static string GetModuleId(string fullTagName)
+        {
+            if (string.IsNullOrEmpty(fullTagName)) return string.Empty;
+
+            int idx = fullTagName.IndexOf(Separator);
+            if (idx > 0)
+            {
+                return fullTagName.Substring(0, idx);
+            }
+            return string.Empty; // 没有分隔符，说明不是模组点位
+        }
+        /// <summary>
+        /// 解析出原始的模板设备名（需要知道模组ID长度）
+        /// 示例：("1_PLC_Peripheral", "1") -> 返回 "PLC_Peripheral"
+        /// </summary>
+        public static string GetOriginalDeviceId(string currentDeviceId, string moduleId)
+        {
+            string prefix = $"{moduleId}{Separator}";
+            if (currentDeviceId.StartsWith(prefix))
+            {
+                return currentDeviceId.Substring(prefix.Length);
+            }
+            return currentDeviceId;
+        }
+
+        /// <summary>
+        /// 【新增】获取兄弟点位名
+        /// 场景：已知 "1_PLC_Flipper_Trigger"，想拿 "1_PLC_Flipper_FixtureCode"
+        /// 原理：找到最后一个分隔符，保留前缀，替换后缀
+        /// </summary>
+        /// <param name="currentFullTagName">当前完整点位名</param>
+        /// <param name="newSuffix">兄弟点位的CSV原始名 (如 "FixtureCode")</param>
+        /// <returns>1_PLC_Flipper_FixtureCode</returns>
+        public static string GetSibling(string currentFullTagName, string newSuffix)
+        {
+            if (string.IsNullOrEmpty(currentFullTagName)) return string.Empty;
+
+            // 找到最后一个 "_" 的位置
+            int lastSeparatorIndex = currentFullTagName.LastIndexOf(Separator);
+
+            if (lastSeparatorIndex < 0) return newSuffix; // 防御性代码
+
+            // 截取 "1_PLC_Flipper_"
+            string prefix = currentFullTagName.Substring(0, lastSeparatorIndex + 1);
+
+            // 拼接 "1_PLC_Flipper_" + "FixtureCode"
+            return prefix + newSuffix;
+        }
+
+        /// <summary>
+        /// 【新增】从完整点位名提取设备前缀
+        /// 示例：1_PLC_Flipper_Trigger -> 1_PLC_Flipper
+        /// </summary>
+        public static string GetDeviceNameFromTag(string fullTagName)
+        {
+            if (string.IsNullOrEmpty(fullTagName)) return string.Empty;
+            int lastSeparatorIndex = fullTagName.LastIndexOf(Separator);
+            if (lastSeparatorIndex < 0) return fullTagName;
+            return fullTagName.Substring(0, lastSeparatorIndex);
+        }
     }
 }
