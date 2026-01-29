@@ -50,5 +50,29 @@ namespace MyModbus
             // 3. 加上新前缀
             return $"{newDeviceId}{Separator}{coreName}";
         }
+
+        /// <summary>
+        /// 【新增】构建模组化的设备ID
+        /// 场景：在克隆设备时，生成如 "1_UpLoad" 这样的ID
+        /// </summary>
+        /// <param name="moduleId">模组编号 (如 "1")</param>
+        /// <param name="originalDeviceId">原始设备名 (如 "UpLoad")</param>
+        public static string BuildDeviceId(string moduleId, string originalDeviceId)
+        {
+            // 如果原来的名字里已经包含了模组前缀（防止重复添加），可以加个判断
+            // 但通常直接拼接即可： 1_UpLoad
+            return $"{moduleId}{Separator}{originalDeviceId}";
+        }
+
+        /// <summary>
+        /// 【新增】生成带模组的三级Key
+        /// 场景：直接获取 1号模组-上料机-启动按钮
+        /// 结果：1_UpLoad_IO_Start
+        /// </summary>
+        public static string Build(string moduleId, string deviceId, string group, string name)
+        {
+            string compositeDevice = BuildDeviceId(moduleId, deviceId);
+            return Build(compositeDevice, group, name);
+        }
     }
 }

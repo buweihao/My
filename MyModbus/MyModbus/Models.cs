@@ -28,6 +28,28 @@ namespace MyModbus
         public bool IsStringReverse { get; set; } = false;
 
         /// <summary>
+        /// 【新增】将此设备作为模板，克隆到指定模组
+        /// </summary>
+        /// <param name="moduleId">模组ID (如 1, 2)</param>
+        /// <param name="newIp">新设备的IP地址</param>
+        /// <returns>克隆后的新设备</returns>
+        public Device CloneToModule(int moduleId, string newIp)
+        {
+            return CloneToModule(moduleId.ToString(), newIp);
+        }
+
+        public Device CloneToModule(string moduleId, string newIp)
+        {
+            // 1. 严格使用 Helper 生成新 ID，禁止私自拼接字符串！
+            // 结果示例: "UpLoad" + "1" -> "1_UpLoad"
+            string newDeviceId = ModbusKeyHelper.BuildDeviceId(moduleId, this.DeviceId);
+
+            // 2. 调用底层的克隆逻辑 (复用你现有的 CloneAsNew)
+            return this.CloneAsNew(newDeviceId, newIp);
+        }
+
+
+        /// <summary>
         /// 【核心逻辑】克隆当前设备为新模组
         /// 自动处理点位重命名
         /// </summary>
@@ -37,7 +59,7 @@ namespace MyModbus
         /// <returns>全新的 Device 实例</returns>
         public Device CloneAsNew(string newDeviceId, string newIp, int? newPort = null)
         {
-            // 1. 复制基础属性
+            // 1. 复制设备级属性
             var newDevice = new Device
             {
                 DeviceId = newDeviceId,
@@ -46,41 +68,33 @@ namespace MyModbus
                 Station = this.Station,
                 Timeout = this.Timeout,
                 IsActive = this.IsActive,
-                ByteOrder = this.ByteOrder, // 确保所有属性都复制了
-                Tags = new List<Tag>()        // 初始化新列表
+                ByteOrder = this.ByteOrder,
+                Tags = new List<Tag>()
             };
 
-            // 2. 深拷贝 Tags 并重命名
+            // 2. 遍历并深拷贝每一个 Tag
             if (this.Tags != null)
             {
-                foreach (var oldTag in this.Tags)
+                foreach (var tag in this.Tags)
                 {
-                    // --- 关键点 ---
-                    // 调用 Helper 进行改名，业务逻辑完全不需要介入
-                    string newTagName = ModbusKeyHelper.Reparent(oldTag.TagName, this.DeviceId, newDeviceId);
                     var newTag = new Tag
                     {
-                        TagName = newTagName,
+                        // --- 关键：重命名点位名 ---
+                        TagName = ModbusKeyHelper.Reparent(tag.TagName, this.DeviceId, newDeviceId),
+                        Description = tag.Description,
 
-                        // --- 复制物理寻址核心 ---
-                        Address = oldTag.Address,
-                        StartAddress = oldTag.StartAddress, // 必须复制解析后的起始地址
-                        Length = oldTag.Length,
-                        Area = oldTag.Area,                 // 必须复制存储区类型 (Coils/Registers)
-                        DataType = oldTag.DataType,
+                        // --- 物理地址与类型复制 ---
+                        Address = tag.Address,
+                        StartAddress = tag.StartAddress,
+                        Length = tag.Length,
+                        Area = tag.Area,
+                        DataType = tag.DataType,
 
-                        // --- 复制基础标识 ---
-                        Description = oldTag.Description,
-
-                        // --- 复制采集策略 ---
-                        ScanRate = oldTag.ScanRate,
-
-                        // --- 复制数据处理 ---
-                        Scale = oldTag.Scale,
-                        Offset = oldTag.Offset,
-
-                        // --- 复制用户偏好 ---
-                        IsFavorite = oldTag.IsFavorite
+                        // --- 策略与处理复制 ---
+                        ScanRate = tag.ScanRate,
+                        Scale = tag.Scale,
+                        Offset = tag.Offset,
+                        IsFavorite = tag.IsFavorite
                     };
                     newDevice.Tags.Add(newTag);
                 }
@@ -88,10 +102,10 @@ namespace MyModbus
             return newDevice;
         }
     }
-    /// <summary>
-    /// 点位模型：最小采集单元
-    /// </summary>
-    public class Tag
+        /// <summary>
+        /// 点位模型：最小采集单元
+        /// </summary>
+        public class Tag
     {
         // --- 基础标识 ---
         public string TagName { get; set; }         // 业务名称 (如 "Motor_Speed")

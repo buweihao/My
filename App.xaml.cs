@@ -96,7 +96,8 @@ namespace My
 
                 //调用者内容
                 services.AddSingleton<IModbusService, ModbusService>();
-                
+                services.AddSingleton<IDataBaseService, DataBaseService>();
+
                 // 注册业务服务
                 services.AddSingleton<IUserCalculationService, UserCalculationService>();
 
