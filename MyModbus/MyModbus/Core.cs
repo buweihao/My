@@ -450,19 +450,37 @@ namespace MyModbus
                                 parsedValue = ConvertBytesToValue(targetBytes, tag.DataType);
 
                                 // 3. 线性变换 (Scale/Offset)
-                                if (parsedValue is double || parsedValue is float || parsedValue is int || parsedValue is short)
+                                // 注意：这里建议把 ushort, uint 也加上，否则无符号类型不会触发 Scale 计算
+                                if (parsedValue is double || parsedValue is float || parsedValue is int || parsedValue is short || parsedValue is ushort || parsedValue is uint)
                                 {
                                     double rawNum = Convert.ToDouble(parsedValue);
                                     double finalNum = rawNum * tag.Scale + tag.Offset;
 
-                                    // ✅ 修改方案：使用 if-else 明确赋值，阻止编译器进行类型提升
-                                    if (tag.DataType == DataType.Float)
+                                    // 根据配置的数据类型，将 double 强转回目标类型
+                                    switch (tag.DataType)
                                     {
-                                        parsedValue = (float)finalNum;
-                                    }
-                                    else
-                                    {
-                                        parsedValue = finalNum;
+                                        case DataType.Float:
+                                            parsedValue = (float)finalNum;
+                                            break;
+                                        case DataType.Double:
+                                            parsedValue = finalNum;
+                                            break;
+                                        case DataType.Int16:
+                                            parsedValue = (short)finalNum;
+                                            break;
+                                        case DataType.UInt16:
+                                            parsedValue = (ushort)finalNum;
+                                            break;
+                                        case DataType.Int32:
+                                            parsedValue = (int)finalNum;
+                                            break;
+                                        case DataType.UInt32:
+                                            parsedValue = (uint)finalNum; // 注意：C#这里可能需要处理溢出或使用Convert.ToUInt32
+                                            break;
+                                        default:
+                                            // 如果不想转换或者类型未列出，保留 double 或转为 int
+                                            parsedValue = finalNum;
+                                            break;
                                     }
                                 }
                             }
