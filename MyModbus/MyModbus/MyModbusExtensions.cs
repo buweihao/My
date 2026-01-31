@@ -15,10 +15,7 @@ namespace MyModbus
             string configFilePath = "config.csv",
             Action<List<Device>>? extraConfig = null) // 👈 新增参数
         {
-            // 1. 注册 DataBus
-            services.AddSingleton<DataBus>();
-
-            // 2. 注册配置列表 (核心修改处)
+            // 1. 【移动顺序】先注册配置列表 (原代码中是在第2步，现在移到最前面)
             services.AddSingleton<List<Device>>(provider =>
             {
                 // A. 先从 CSV 加载基础配置
@@ -31,6 +28,13 @@ namespace MyModbus
                 }
 
                 return devices;
+            });
+
+            // 2. 【修改注册】注册 DataBus，并注入 List<Device>
+            services.AddSingleton<DataBus>(provider =>
+            {
+                var devices = provider.GetRequiredService<List<Device>>();
+                return new DataBus(devices);
             });
 
             // 3. 注册采集引擎 (Engine)

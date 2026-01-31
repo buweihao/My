@@ -66,7 +66,7 @@ namespace MyModbus
                                 DeviceId = devId,
                                 IpAddress = ip,
                                 Port = port,
-                                ByteOrder = DataFormat.ABCD,
+                                ByteOrder = DataFormat.CDAB,
                                 IsStringReverse = false
                             };
                             devices.Add(device);
@@ -235,6 +235,17 @@ namespace MyModbus
     #region  解析
     public class DataBus
     {
+        // 1. 新增：存储所有合法点位的集合（白名单）
+        private readonly HashSet<string> _validTagNames;
+        // 2. 新增：构造函数，注入设备列表
+        public DataBus(List<Device> devices)
+        {
+            // 将所有设备的所有 TagName 扁平化存入 HashSet，O(1) 查找效率
+            _validTagNames = devices
+                .SelectMany(d => d.Tags)
+                .Select(t => t.TagName)
+                .ToHashSet();
+        }
         // 1. 线程安全的缓存字典：Key = TagName, Value = TagData
         // ConcurrentDictionary 保证了多线程读写不会冲突
         private readonly ConcurrentDictionary<string, TagData> _cache = new();
@@ -244,57 +255,77 @@ namespace MyModbus
         public event Action<TagData> OnDataChanged;
         private readonly ConcurrentDictionary<string, List<Action<TagData>>> _tagSubscriptions = new();
         /// <summary>
-        /// 【新功能】精准订阅：只订阅特定名称的点位
+        /// 精准订阅：只订阅特定名称的点位
         /// </summary>
         public virtual void Subscribe(string tagName, Action<TagData> callback)
         {
+            // 3. 修改：添加校验逻辑
+            if (!_validTagNames.Contains(tagName))
+            {
+                // 红色警告：点位不存在
+                Console.ForegroundColor = ConsoleColor.Red;
+                Console.WriteLine($"[订阅失败] 点位不存在: {tagName}");
+                Console.ResetColor();
+                // 也可以选择在这里 return，不执行添加操作，或者保留添加（防止后续动态加载）
+                // 建议直接 return，避免无效回调
+                return;
+            }
+
             _tagSubscriptions.AddOrUpdate(tagName,
                 new List<Action<TagData>> { callback },
                 (key, list) => { list.Add(callback); return list; });
+
+            // 绿色提示：订阅成功
+            Console.ForegroundColor = ConsoleColor.Green;
+            Console.WriteLine($"[订阅成功] {tagName}");
+            Console.ResetColor();
         }
         /// <summary>
-        /// 【核心重载】批量订阅：返回 值数组 + 整体质量标志
+        /// 批量订阅
         /// </summary>
-        /// <typeparam name="T">期望的返回类型</typeparam>
-        /// <param name="tagNames">点位名称列表</param>
-        /// <param name="callback">回调函数：(数据数组, 整体质量是否良好)</param>
         public virtual void Subscribe<T>(IEnumerable<string> tagNames, Action<T[], bool> callback)
         {
             if (tagNames == null || callback == null) return;
 
-            // 1. 固化查询列表
             var tags = tagNames.ToArray();
 
-            // 2. 定义统一处理逻辑
+            // 4. 修改：批量校验
+            foreach (var tag in tags)
+            {
+                if (!_validTagNames.Contains(tag))
+                {
+                    Console.ForegroundColor = ConsoleColor.Red;
+                    Console.WriteLine($"[组合订阅警告] 包含不存在的点位: {tag}");
+                    Console.ResetColor();
+                }
+                else
+                {
+                    // 可选：打印详细成功日志，或者只打印错误的
+                    // Console.WriteLine($"[组合订阅] {tag} OK");
+                }
+            }
+
             Action<TagData> groupHandler = (triggerData) =>
             {
                 T[] results = new T[tags.Length];
-                bool isAllGood = true; // 默认为好
+                bool isAllGood = true;
 
                 for (int i = 0; i < tags.Length; i++)
                 {
-                    // 从缓存获取完整 TagData（包含 IsQualityGood）
                     TagData? data = GetTagData(tags[i]);
-
-                    // 检查：如果任意一个点位数据为空或质量为 Bad
                     if (data == null || !data.Value.IsQualityGood)
                     {
                         isAllGood = false;
-                        // 注意：这里不要直接 return，即使坏了也要把数组填满（防止空引用），
-                        // 只是把 isAllGood 标记为 false 告诉上层。
                     }
-
-                    // 转换数值（复用之前的 ConvertValue 辅助方法）
                     results[i] = ConvertValue<T>(data?.Value);
                 }
-
-                // 3. 【关键】将数据和质量标志一起传给订阅者
                 callback(results, isAllGood);
             };
 
-            // 3. 逐个订阅
             foreach (var tag in tags)
             {
+                // 这里调用的是上面的单点 Subscribe，所以只要上面改了，这里也会有日志
+                // 但为了避免重复添加逻辑，建议直接操作底层字典，或者利用 Subscribe 的校验
                 Subscribe(tag, groupHandler);
             }
         }
@@ -365,7 +396,17 @@ namespace MyModbus
 
         public virtual object GetValue(string tagName)
         {
-            if (_cache.TryGetValue(tagName, out var data)) return data.Value;
+            if (_cache.TryGetValue(tagName, out var data))
+            {
+                return data.Value;
+            }
+
+            // --- 修改开始：点位不存在时打印红色警告 ---
+            Console.ForegroundColor = ConsoleColor.Red;
+            Console.WriteLine($"[DataBus] 获取值失败: 点位不存在或尚未初始化 -> {tagName}");
+            Console.ResetColor();
+            // --- 修改结束 ---
+
             return null;
         }
 
