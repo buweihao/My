@@ -178,7 +178,7 @@ namespace MyModbus
                     // 标记为离线，并关闭连接
                     IsConnected = false;
                     _modbus.ConnectClose();
-
+                    _lastConnectFailTime = DateTime.Now;
                     // 注意：这里通常不需要开启冷却。
                     // 逻辑是：读写失败后，我们希望下一次采集时立即尝试重连一次。
                     // 只有当“重连动作”本身失败了，才进入冷却。
@@ -205,7 +205,7 @@ namespace MyModbus
                 // 你也可以判断 result.ErrorCode 来决定是否置为 false
                 IsConnected = false;
                 _modbus.ConnectClose();
-
+                _lastConnectFailTime = DateTime.Now;
                 throw new Exception($"[{Name}] {opName} 失败: {result.Message}");
             }
             return result.Content;
